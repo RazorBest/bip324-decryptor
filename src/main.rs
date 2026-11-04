@@ -1,3 +1,4 @@
+mod iptables;
 mod merger;
 mod pcap_writer;
 mod util;
@@ -711,6 +712,12 @@ struct Args {
     /// From which interface to take the ip of the host
     #[arg(long)]
     interface: Option<String>,
+    #[arg(long)]
+    iptables_by_uname: Option<String>,
+    #[arg(long, default_value_t = false)]
+    queue_bypass: bool,
+    #[arg(long, default_value_t = 8333)]
+    bitcoin_port: u32,
 }
 
 fn main() {
@@ -723,8 +730,13 @@ fn main() {
     let nodename = args.node_name;
     let dump_prefix = format!("capture_{}", nodename);
 
+    let _configured_iptables;
+    if let Some(uname) = args.iptables_by_uname {
+        _configured_iptables =
+            iptables::config_by_user(args.queue_num, args.queue_bypass, &uname, args.bitcoin_port);
+    }
+
     let interceptor_opts = SlappNfqIpv4TcpOptions {
-        // The user must create a queue filter for this id
         queue_num: args.queue_num,
     };
 
