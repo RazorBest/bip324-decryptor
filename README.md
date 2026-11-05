@@ -101,7 +101,7 @@ Feel free to change `--dport 8333`, the id of `queue-num`, or the `--queue-bypas
 -A BIP324_DECR_QUEUE_OUT -m connmark --mark 0x1 -j NFQUEUE --queue-num 0 --queue-bypass
 # Generic way of ensuring that a packet matched by any of the NFQEUEUE rules is connmarked
 -A BIP324_DECR_QUEUE_OUT -j CONNMARK --set-xmark 0x1/0x1
--A BIP324_DECR_QUEUE_OUT -m owner --uid-owner <user_running_bitcoind> -j NFQUEUE --queue-num 0 --queue-bypass
+-A BIP324_DECR_QUEUE_OUT -p tcp -m owner --uid-owner <user_running_bitcoind> -j NFQUEUE --queue-num 0 --queue-bypass
 -A BIP324_DECR_QUEUE_OUT -j CONNMARK --set-xmark 0x0/0x1
 
 COMMIT

@@ -71,7 +71,7 @@ pub fn config_by_user(
 -A BIP324_DECR_QUEUE_OUT -m connmark --mark 0x1 -j NFQUEUE {queue_args}
 # Generic way of ensuring that a packet matched by any of the NFQEUEUE rules is connmarked
 -A BIP324_DECR_QUEUE_OUT -j CONNMARK --set-xmark 0x1/0x1
--A BIP324_DECR_QUEUE_OUT -m owner --uid-owner {uname} -j NFQUEUE {queue_args}
+-A BIP324_DECR_QUEUE_OUT -p tcp -m owner --uid-owner {uname} -j NFQUEUE {queue_args}
 -A BIP324_DECR_QUEUE_OUT -j CONNMARK --set-xmark 0x0/0x1
 
 COMMIT
