@@ -119,7 +119,7 @@ impl MergerLogger {
             let cflags = self
                 .close_tracker
                 .entry((session_id, is_client))
-                .or_insert_with(|| CloseFlags::new());
+                .or_insert_with(CloseFlags::new);
             cflags.closed_session_plaintext = true;
 
             if cflags.closed() {
@@ -173,7 +173,7 @@ impl MergerLogger {
             let cflags = self
                 .close_tracker
                 .entry((packet.session_id, packet.is_client))
-                .or_insert_with(|| CloseFlags::new());
+                .or_insert_with(CloseFlags::new);
             cflags.closed_session_packet = true;
 
             if cflags.closed() {

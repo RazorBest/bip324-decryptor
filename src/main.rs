@@ -59,12 +59,9 @@ fn interface_ipv4_ips(interface: &str) -> Vec<Ipv4Addr> {
             if !entry.ifa_addr.is_null() {
                 let name = CStr::from_ptr(entry.ifa_name).to_string_lossy();
 
-                if name == interface {
-                    if (*entry.ifa_addr).sa_family as i32 == libc::AF_INET {
-                        let addr = &*(entry.ifa_addr as *const libc::sockaddr_in);
-
-                        ips.push(Ipv4Addr::from(u32::from_be(addr.sin_addr.s_addr)));
-                    }
+                if name == interface && (*entry.ifa_addr).sa_family as i32 == libc::AF_INET {
+                    let addr = &*(entry.ifa_addr as *const libc::sockaddr_in);
+                    ips.push(Ipv4Addr::from(u32::from_be(addr.sin_addr.s_addr)));
                 }
             }
 
@@ -422,7 +419,7 @@ impl TransportSlappSpy for TransportSpy {
 
         self.suspicious.borrow_mut().insert(session_id);
 
-        return InterceptVerdict::Accept;
+        InterceptVerdict::Accept
     }
 }
 
@@ -707,7 +704,7 @@ fn main() {
     let running = Arc::new(AtomicBool::new(true));
     set_ctrlc_handler(&running);
 
-    let host_ip = args.interface.and_then(|iface| {
+    let host_ip = args.interface.map(|iface| {
         let ips = interface_ipv4_ips(&iface);
         if ips.is_empty() {
             panic!("Interface has too many ips");
@@ -716,7 +713,7 @@ fn main() {
         let host_ip = ips[0];
         debug!("ip of interface {}: {}", iface, host_ip);
 
-        Some(host_ip.octets())
+        host_ip.octets()
     });
 
     run_program(interceptor_opts, dumper_opts, running, host_ip).unwrap();

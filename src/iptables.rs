@@ -86,8 +86,7 @@ COMMIT
 }
 
 fn unload_config_by_user() -> Result<(), Box<dyn std::error::Error>> {
-    let rules = format!(
-        "\
+    let rules = "\
 *mangle
 -F BIP324_DECR_QUEUE_IN
 -D INPUT -j BIP324_DECR_QUEUE_IN
@@ -97,11 +96,9 @@ fn unload_config_by_user() -> Result<(), Box<dyn std::error::Error>> {
 -D OUTPUT -j BIP324_DECR_QUEUE_OUT
 -X BIP324_DECR_QUEUE_OUT
 
-COMMIT
-"
-    );
+COMMIT";
 
-    run_iptables_restore(&rules)?;
+    run_iptables_restore(rules)?;
 
     Ok(())
 }
