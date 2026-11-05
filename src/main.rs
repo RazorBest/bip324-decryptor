@@ -714,7 +714,7 @@ struct Args {
     interface: Option<String>,
     #[arg(long)]
     iptables_by_uname: Option<String>,
-    #[arg(long, default_value_t = false)]
+    #[arg(long, default_value_t = true)]
     queue_bypass: bool,
     #[arg(long, default_value_t = 8333)]
     bitcoin_port: u32,
