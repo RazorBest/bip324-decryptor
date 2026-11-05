@@ -15,8 +15,9 @@ use pcap_file::pcapng::blocks::interface_description::InterfaceDescriptionBlock;
 use pcap_file::{DataLink, PcapResult};
 use rtrb::Consumer;
 use slapp::tcp_util::tcp_ipv4_session_pair;
+use tracing::info;
 
-const DUMPER_MAX_WRITTEN_DEFAULT: usize = 2 * 1024 * 1024 * 1024; // 2 GB
+const DUMPER_MAX_WRITTEN_DEFAULT: usize = 512 * 1024 * 1024; // 512 MB
 const PCAP_HEADER_SIZE: usize = 28;
 
 pub fn enhanced_packet_from_payload(
@@ -91,13 +92,14 @@ impl Dumper {
                 )
             };
 
-            let ret = OpenOptions::new().write(true).create_new(true).open(path);
+            let ret = OpenOptions::new().write(true).create_new(true).open(&path);
 
             match &ret {
                 Err(err) if err.kind() == std::io::ErrorKind::AlreadyExists => {
                     index += 1;
                 }
                 _ => {
+                    info!("Created file {}", &path);
                     return ret;
                 }
             }

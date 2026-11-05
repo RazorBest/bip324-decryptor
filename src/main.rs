@@ -1,4 +1,5 @@
 mod iptables;
+mod logging;
 mod merger;
 mod pcap_writer;
 mod util;
@@ -8,7 +9,7 @@ use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::ffi::CStr;
 use std::net::Ipv4Addr;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::ptr;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -653,48 +654,6 @@ fn set_ctrlc_handler(running: &Arc<AtomicBool>) {
     .expect("Error setting Ctrl-C handler");
 }
 
-fn setup_log(log_template: &Path, log_level: tracing::Level) {
-    use time::macros::format_description;
-    use tracing_appender::rolling::{Builder, Rotation};
-    use tracing_subscriber::fmt::{self, time::UtcTime};
-
-    let directory = log_template.parent().expect("Log path must have parent");
-    let prefix = log_template
-        .file_prefix()
-        .expect("Log path must have file name")
-        .to_str()
-        .unwrap();
-    let suffix = log_template.extension();
-
-    let mut builder = Builder::new()
-        .rotation(Rotation::DAILY)
-        .max_log_files(14)
-        .filename_prefix(prefix);
-
-    if let Some(suffix) = suffix {
-        builder = builder.filename_suffix(suffix.to_str().unwrap());
-    }
-
-    let file_appender = builder.build(directory).unwrap();
-
-    tracing_subscriber::fmt()
-        .with_writer(file_appender)
-        .with_target(false)
-        .with_max_level(log_level)
-        .with_timer(UtcTime::new(format_description!(
-            "[year repr:last_two]-[month]-[day]T\
-            [hour]:[minute]:[second].[subsecond digits:2]Z"
-        )))
-        // .without_time()
-        // .with_thread_ids(true)
-        .with_span_events(fmt::format::FmtSpan::CLOSE)
-        .with_file(true)
-        .with_line_number(true)
-        // No colors
-        .with_ansi(false)
-        .init();
-}
-
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
@@ -718,14 +677,15 @@ struct Args {
     queue_bypass: bool,
     #[arg(long, default_value_t = 8333)]
     bitcoin_port: u32,
+    /// Stdout log level: error, warn, info, debug or trace, or a number 1-5
+    #[arg(long, default_value_t = tracing::Level::INFO)]
+    stdout_log: tracing::Level,
 }
 
 fn main() {
     let args = Args::parse();
 
-    if let Some(log_template) = &args.log_template {
-        setup_log(log_template, args.log);
-    }
+    logging::setup_log(&args.log_template, args.log, args.stdout_log);
 
     let nodename = args.node_name;
     let dump_prefix = format!("capture_{}", nodename);
