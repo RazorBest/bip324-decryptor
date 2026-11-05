@@ -18,10 +18,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use bip324_mitm::MitmBIP324;
 use clap::Parser;
-use etherparse::{
-    InternetSlice::{Ipv4, Ipv6},
-    IpNumber, SlicedPacket,
-};
+use etherparse::{IpNumber, Ipv4HeaderSlice};
 use pcap_file::pcapng::blocks::enhanced_packet::EnhancedPacketBlock;
 use rtrb::{Consumer, Producer, RingBuffer};
 use secp256k1::rand;
@@ -205,22 +202,15 @@ impl NetworkSlappSpy for NetworkSpy {
     fn before(&mut self, net_header: &[u8], data: &[u8]) {
         self.before_counter += 1;
 
-        let Ok(parsed) = SlicedPacket::from_ip(net_header) else {
-            warn!("Couldn't parse net_header");
+        let Ok(ip) = Ipv4HeaderSlice::from_slice(net_header) else {
+            warn!(
+                "Couldn't parse net_header: {:?}",
+                &net_header[..net_header.len().min(20)]
+            );
             return;
         };
 
-        let protocol = match &parsed.net {
-            Some(Ipv4(ip)) => ip.header().protocol(),
-            Some(Ipv6(..)) => {
-                panic!("IPv6 is not supported");
-            }
-            _ => {
-                panic!("Non-IP packet");
-            }
-        };
-
-        if protocol == IpNumber::TCP {
+        if ip.protocol() == IpNumber::TCP {
             return;
         }
 
