@@ -107,6 +107,20 @@ Feel free to change `--dport 8333`, the id of `queue-num`, or the `--queue-bypas
 COMMIT
 ```
 
+**Undo rules**:
+```
+*mangle
+-F BIP324_DECR_QUEUE_IN
+-D INPUT -j BIP324_DECR_QUEUE_IN
+-X BIP324_DECR_QUEUE_IN
+
+-F BIP324_DECR_QUEUE_OUT
+-D OUTPUT -j BIP324_DECR_QUEUE_OUT
+-X BIP324_DECR_QUEUE_OUT
+
+COMMIT
+```
+
 ### Catch-all rules (not recommended)
 
 This minimal set of rules sends all TCP packets to NFQUEUE (except for bitcoin-rpc packets). Packets that belong to local connections will enter twice the queue because they will hit both the INPUT and OUTPUT chain.
