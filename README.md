@@ -10,12 +10,31 @@ cargo install --git https://github.com/RazorBest/bip324-decryptor
 
 The decryptor uses NFQUEUE and needs some iptables rules. You can use the `--iptables-by-uname` option, or set the rules manually by referring to [Iptables examples](#iptables-examples)
 
-The binary needs root privileges:
+First, stop `bitcoind` from the user that runs bitcoin-core:
+```
+bitcoin_user:~ bitcoin-cli stop
+```
+
+Then, run the binary with root privileges:
 ```
 BIP324_DECRYPTOR_PATH=$(which bip324-decryptor); sudo --preserve-env=BIP324_DECRYPTOR_PATH $BIP324_DECRYPTOR_PATH --node-name my_node --log-template logs/decryptor --log debug --iptables-by-uname btc_username
 ```
 
-Or, if you configure `iptables` manually, you can set the `CAP_NET_ADMIN` capability for the binary:
+And finally, you can start bitcoind:
+```
+bitcoin_user:~ bitcoind -daemon
+```
+
+The program will create the following files:
+- `capture_<node_name>_<date>.pcap` - the packets that were forwarded by the interceptor
+- `capture_<node_name>_decrypted_<date>.pcap` - the same packets as in `capture_<node_name>_<date>.pcap`, but with decrypted contents
+- `capture_<node_name>_unprocessed_<date>.pcap` - all packets received by the interceptor, even if the dropped ones
+- `capture_<node_name>_suspicious_<date>.pcap` - packets that were not expected, but still forwarded and bypassed by the MitM layer
+- `./logs/decryptor.<day_date>` - log files
+
+### Not running with sudo
+
+Alternatively, f you configure `iptables` manually, you can set the `CAP_NET_ADMIN` capability for the binary:
 ```
 sudo setcap cap_net_admin+ep $(which bip324-decryptor)
 ```
@@ -31,13 +50,6 @@ To remove the `CAP_NET_ADMIN` capability:
 ```
 sudo setcap -r cap_net_admin $(which bip324-decryptor)
 ```
-
-The program will create the following files:
-- `capture_<node_name>_<date>.pcap` - the packets that were forwarded by the interceptor
-- `capture_<node_name>_decrypted_<date>.pcap` - the same packets as in `capture_<node_name>_<date>.pcap`, but with decrypted contents
-- `capture_<node_name>_unprocessed_<date>.pcap` - all packets received by the interceptor, even if the dropped ones
-- `capture_<node_name>_suspicious_<date>.pcap` - packets that were not expected, but still forwarded and bypassed by the MitM layer
-- `./logs/decryptor.<day_date>` - log files
 
 ## Iptables examples
 
