@@ -22,11 +22,11 @@ use etherparse::{IpNumber, Ipv4HeaderSlice};
 use pcap_file::pcapng::blocks::enhanced_packet::EnhancedPacketBlock;
 use rtrb::{Consumer, Producer, RingBuffer};
 use secp256k1::rand;
-use slapp::tcp::SlappTcpError;
 use slapp::{
-    ApplicationDataSlappHandler, InterceptVerdict, NetworkSlappSpy, SlappNfqIpv4Tcp,
-    SlappNfqIpv4TcpOptions, TransportSlappSpy,
+    ApplicationDataSlappHandler, InterceptVerdict, NetworkSlappSpy, TransportSlappSpy,
 };
+use slapp::nfq::{SlappNfqIpv4Tcp, SlappNfqIpv4TcpOptions};
+use slapp::tcp::SlappTcpError;
 use tracing::{self, debug, warn};
 
 use crate::merger::{MergerLogger, PlaintextRecord};
