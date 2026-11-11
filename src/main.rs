@@ -22,11 +22,12 @@ use etherparse::{IpNumber, Ipv4HeaderSlice};
 use pcap_file::pcapng::blocks::enhanced_packet::EnhancedPacketBlock;
 use rtrb::{Consumer, Producer, RingBuffer};
 use secp256k1::rand;
-use slapp::{
-    ApplicationDataSlappHandler, InterceptVerdict, NetworkSlappSpy, TransportSlappSpy,
-};
-use slapp::nfq::{SlappNfqIpv4Tcp, SlappNfqIpv4TcpOptions};
+use slapp::nfq::{SlappNfqIpv4Tcp, SlappNfqNetOptions};
 use slapp::tcp::SlappTcpError;
+use slapp::{
+    ApplicationDataSlappHandler, InterceptVerdict, NetworkSlappSpy, SlappIpv4, SlappTcp,
+    TransportSlappSpy,
+};
 use tracing::{self, debug, warn};
 
 use crate::merger::{MergerLogger, PlaintextRecord};
@@ -435,7 +436,7 @@ impl TransportSpy {
 type Interceptor = SlappNfqIpv4Tcp<AppHandler, NetworkSpy, TransportSpy>;
 
 pub async fn async_run_interceptor(
-    opts: &SlappNfqIpv4TcpOptions,
+    opts: &SlappNfqNetOptions,
     running: Arc<AtomicBool>,
     plaintext_producer: Producer<PlaintextRecord>,
     packet_producer: Producer<PacketRecord>,
@@ -456,9 +457,10 @@ pub async fn async_run_interceptor(
 
     let network_spy = NetworkSpy::new(sus_producer_ref);
 
-    let mut interceptor: Interceptor = opts
-        .open_from(app_handler, network_spy, transport_spy)
-        .unwrap();
+    let transport_handler = SlappTcp::new_from(app_handler, transport_spy);
+    let net_handler = SlappIpv4::new(transport_handler, network_spy);
+
+    let mut interceptor: Interceptor = opts.open_from_handler(net_handler).unwrap();
 
     interceptor.intercept(running).await
 }
@@ -494,7 +496,7 @@ pub fn run_pcap_writer(
 }
 
 pub fn run_program(
-    interceptor_opts: SlappNfqIpv4TcpOptions,
+    interceptor_opts: SlappNfqNetOptions,
     dumper_opts: DumperOptions,
     running: Arc<AtomicBool>,
     host_ip: Option<[u8; 4]>,
@@ -652,6 +654,9 @@ struct Args {
     /// NFQUEUE id
     #[arg(short, long, default_value_t = 0)]
     queue_num: u16,
+    /// If set, change the NFQUEUE size with this value in the kernel
+    #[arg(short, long)]
+    max_queue_len: Option<u32>,
     /// Log level: error, warn, info, debug or trace, or a number 1-5
     #[arg(long, default_value_t = tracing::Level::INFO)]
     log: tracing::Level,
@@ -683,8 +688,9 @@ fn main() {
             iptables::config_by_user(args.queue_num, args.queue_bypass, &uname, args.bitcoin_port);
     }
 
-    let interceptor_opts = SlappNfqIpv4TcpOptions {
+    let interceptor_opts = SlappNfqNetOptions {
         queue_num: args.queue_num,
+        max_queue_len: args.max_queue_len,
     };
 
     let dumper_opts = DumperOptions {

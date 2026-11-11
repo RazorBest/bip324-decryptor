@@ -783,7 +783,7 @@ checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
 [[package]]
 name = "slapp"
 version = "0.1.1"
-source = "git+https://github.com/RazorBest/slapp-rs#6c377b60fa8eb3cf502086f64dec0d4a5e34641c"
+source = "git+https://github.com/RazorBest/slapp-rs#7a5d1fab8cb437c506d8fe3a126802bc6025251b"
 dependencies = [
  "bytes",
  "nfq-razor-temp-release",
