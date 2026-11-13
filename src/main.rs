@@ -389,7 +389,7 @@ impl TransportSlappSpy for TransportSpy {
         session_id: u64,
         err: SlappTcpError,
     ) -> InterceptVerdict {
-        debug!("Error for {}: {:?}", session_id, err);
+        debug!("Error for session_id={}: {:?}", session_id, err);
 
         // the before callback was called before the session was thought to be suspicious
         if self.suspicious.borrow_mut().get(&session_id).is_none() {
