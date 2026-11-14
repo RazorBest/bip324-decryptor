@@ -782,9 +782,8 @@ checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
 
 [[package]]
 name = "slapp"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c48854ac164aa16de755a6e1aff0915142ac89f21ce5a3f432822ea2066a44f"
+version = "0.1.3"
+source = "git+https://github.com/RazorBest/slapp-rs.git#7806a7b1e8917846b279b47552074ba0bcde3798"
 dependencies = [
  "bytes",
  "nfq-razor-temp-release",
