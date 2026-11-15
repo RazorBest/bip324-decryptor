@@ -28,7 +28,7 @@ use slapp::{
     ApplicationDataSlappHandler, InterceptVerdict, NetworkSlappSpy, SlappIpv4, SlappTcp,
     TransportSlappSpy,
 };
-use tracing::{self, debug, warn};
+use tracing::{self, debug, info, warn};
 
 use crate::merger::{MergerLogger, PlaintextRecord};
 use crate::pcap_writer::{
@@ -678,6 +678,10 @@ fn main() {
     let args = Args::parse();
 
     logging::setup_log(&args.log_template, args.log, args.stdout_log);
+
+    let version = env!("CARGO_PKG_VERSION");
+    let package_name = env!("CARGO_PKG_NAME");
+    info!("Running {package_name} version {version}");
 
     let nodename = args.node_name;
     let dump_prefix = format!("capture_{}", nodename);
